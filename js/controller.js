@@ -11,7 +11,6 @@ class Controller {
     this.model = model;
     this.view = view;
     this.allConverted = false;
-    this.elementsControlsThumbnailSet = false;
 
     this._bindView();
   }
@@ -24,7 +23,6 @@ class Controller {
 
     // Controls
     this.view.onFormatChange((format) => this._handleFormatChange(format));
-    this.view.onExifChange((enabled) => this._handleExifChange(enabled));
     this.view.onConvertClick(() => this._handleMainButtonClick());
     this.view.onClearAllClick(() => this._handleClearAll());
   }
@@ -138,10 +136,6 @@ class Controller {
     this._renderThumbnailList(); // Update conversion status (JPG → PNG etc.)
   }
 
-  _handleExifChange(enabled) {
-    this.model.setExifCleaner(enabled);
-  }
-
   async _handleMainButtonClick() {
     if (this.allConverted) {
       // Download Now: download semua yang berhasil dikonversi
@@ -179,7 +173,7 @@ class Controller {
 
     for (const file of filesToConvert) {
       try {
-        await ImageProcessor.convert(file, this.model.targetFormat, this.model.exifCleaner);
+        await ImageProcessor.convert(file, this.model.targetFormat);
         this.view.updateThumbnailItem(file.id, file);
         successCount++;
       } catch (err) {
@@ -241,7 +235,7 @@ class Controller {
 
     this.view.updateThumbnailItem(fileId, file);
     try {
-      await ImageProcessor.convert(file, this.model.targetFormat, this.model.exifCleaner);
+      await ImageProcessor.convert(file, this.model.targetFormat);
       this.view.updateThumbnailItem(fileId, file);
       this.view.showToast(`${file.name} berhasil dikonversi.`, 'success');
     } catch (err) {

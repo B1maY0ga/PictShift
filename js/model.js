@@ -50,7 +50,6 @@ class AppState {
   constructor() {
     this.files = [];
     this.targetFormat = 'image/webp';
-    this.exifCleaner = true;
     this.isConverting = false;
   }
 
@@ -77,10 +76,6 @@ class AppState {
 
   setTargetFormat(format) {
     this.targetFormat = format;
-  }
-
-  setExifCleaner(enabled) {
-    this.exifCleaner = enabled;
   }
 
   get filesByStatus() {
@@ -128,13 +123,14 @@ class ImageProcessor {
   }
 
   /**
-   * Konversi satu gambar: membersihkan EXIF (jika diaktifkan) dan mengubah format.
+   * Konversi satu gambar: membersihkan EXIF (secara otomatis via canvas re-encode)
+   * dan mengubah format. EXIF selalu dihapus karena HTML5 Canvas tidak menyalin
+   * metadata saat drawImage + toBlob.
    * @param {ImageFile} imageFile
    * @param {string} targetFormat MIME type (image/webp, image/jpeg, image/png)
-   * @param {boolean} exifCleaner
    * @returns {Promise<void>}
    */
-  static async convert(imageFile, targetFormat, exifCleaner) {
+  static async convert(imageFile, targetFormat) {
     imageFile.status = 'converting';
 
     try {

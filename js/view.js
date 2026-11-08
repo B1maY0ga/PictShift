@@ -11,7 +11,6 @@ const SELECTORS = {
   controls: '#controls',
   thumbnailList: '#thumbnailList',
   formatSelect: '#formatSelect',
-  exifCheckbox: '#exifCheckbox',
   convertBtn: '#convertBtn',
   emptyState: '#emptyState',
   clearAllBtn: '#clearAllBtn',
@@ -115,11 +114,6 @@ class View {
   onFormatChange(handler) {
     const sel = this.elements.formatSelect;
     if (sel) sel.addEventListener('change', (e) => handler(e.target.value));
-  }
-
-  onExifChange(handler) {
-    const cb = this.elements.exifCheckbox;
-    if (cb) cb.addEventListener('change', (e) => handler(e.target.checked));
   }
 
   onConvertClick(handler) {
@@ -289,7 +283,7 @@ class View {
     const doneIndicator = item.querySelector('.absolute.bottom-1.right-1');
     if (file.status === 'done') {
       if (!doneIndicator) {
-        const thumb = item.querySelector('.w-16.h-16');
+        const thumb = item.querySelector('.w-20.h-20');
         if (thumb) {
           const tag = document.createElement('div');
           tag.className = 'absolute bottom-1 right-1 bg-emerald-600 text-white text-[10px] px-1 rounded';
