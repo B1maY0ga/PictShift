@@ -44,33 +44,29 @@ class View {
     // Dark mode toggle
     const themeToggle = this.elements.themeToggle;
     if (themeToggle) {
-      themeToggle.addEventListener('click', () => {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
+      const applyTheme = (isDark) => {
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
         const sun = this.elements.themeIconSun;
         const moon = this.elements.themeIconMoon;
         if (sun) sun.classList.toggle('hidden', isDark);
         if (moon) moon.classList.toggle('hidden', !isDark);
         localStorage.setItem('pictshift-theme', isDark ? 'dark' : 'light');
+      };
+
+      themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        applyTheme(!isDark);
       });
 
       // Inisialisasi tema dari localStorage / sistem
       const saved = localStorage.getItem('pictshift-theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const shouldBeDark = saved ? saved === 'dark' : prefersDark;
-
-      if (shouldBeDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-
-      // Sinkronkan ikon dengan state sebenarnya
-      const isDark = document.documentElement.classList.contains('dark');
-      const sun = this.elements.themeIconSun;
-      const moon = this.elements.themeIconMoon;
-      if (sun) sun.classList.toggle('hidden', isDark);
-      if (moon) moon.classList.toggle('hidden', !isDark);
+      applyTheme(shouldBeDark);
     }
   }
 
@@ -184,14 +180,14 @@ class View {
     if (!btn) return;
     if (mode === 'download') {
       btn.disabled = false;
-      btn.className = 'btn-primary w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2';
+      btn.className = 'btn-primary w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2';
       btn.innerHTML = `
         <span>Download Now</span>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
       `;
     } else {
       btn.disabled = false;
-      btn.className = 'btn-primary w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2';
+      btn.className = 'btn-primary w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2';
       btn.innerHTML = `
         <span>Convert Now</span>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -222,14 +218,14 @@ class View {
 
     files.forEach((file) => {
       const item = document.createElement('div');
-      item.className = 'flex items-start gap-4 min-w-[260px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm';
+      item.className = 'flex items-start gap-4 min-w-[260px] ps-card p-3 shadow-sm';
       item.dataset.id = file.id;
 
       const statusLabel = (() => {
         const config = {
           idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Siap' },
-          converting: { text: 'text-blue-500 dark:text-blue-400', label: 'Memproses...' },
-          done: { text: 'text-green-500 dark:text-green-400', label: 'Selesai' },
+          converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Memproses...' },
+          done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Selesai' },
           error: { text: 'text-red-500 dark:text-red-400', label: 'Error' },
         }[file.status] || config.idle;
         return `<span class="text-xs font-medium ${config.text}">${config.label}</span>`;
@@ -241,19 +237,19 @@ class View {
             ? `<img src="${file.previewUrl}" alt="Thumbnail" class="w-full h-full object-cover">`
             : `<span class="text-xs text-gray-400">-</span>`
           }
-          ${file.status === 'done' ? `<div class="absolute bottom-1 right-1 bg-green-600 text-white text-[10px] px-1 rounded">✓</div>` : ''}
+          ${file.status === 'done' ? `<div class="absolute bottom-1 right-1 bg-emerald-600 text-white text-[10px] px-1 rounded">✓</div>` : ''}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5 mb-2">
-            <span class="text-lg font-bold leading-none">${file.originalFormat}</span>
-            <span class="text-blue-600 dark:text-blue-400">→</span>
-            <span class="text-lg font-bold leading-none text-green-600 dark:text-green-400">${targetFormatLabel}</span>
+            <span class="text-lg font-bold leading-none ps-conversion-status">${file.originalFormat}</span>
+            <span class="ps-conversion-status">→</span>
+            <span class="text-lg font-bold leading-none ps-conversion-status">${targetFormatLabel}</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-900 dark:text-white truncate">${this._escapeHtml(file.name)}</span>
+            <span class="text-sm font-medium ps-card-text truncate">${this._escapeHtml(file.name)}</span>
             ${statusLabel}
           </div>
-          <span class="text-xs text-gray-500 dark:text-gray-400">${this._formatFileSize(file.size)}</span>
+          <span class="text-xs ps-card-text-secondary">${this._formatFileSize(file.size)}</span>
         </div>
         <button class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors p-1 shrink-0" aria-label="Hapus" data-action="remove">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -281,8 +277,8 @@ class View {
     if (statusLabel) {
       const config = {
         idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Siap' },
-        converting: { text: 'text-blue-500 dark:text-blue-400', label: 'Memproses...' },
-        done: { text: 'text-green-500 dark:text-green-400', label: 'Selesai' },
+        converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Memproses...' },
+        done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Selesai' },
         error: { text: 'text-red-500 dark:text-red-400', label: 'Error' },
       }[file.status] || config.idle;
       statusLabel.className = `text-xs font-medium ${config.text}`;
@@ -296,7 +292,7 @@ class View {
         const thumb = item.querySelector('.w-16.h-16');
         if (thumb) {
           const tag = document.createElement('div');
-          tag.className = 'absolute bottom-1 right-1 bg-green-600 text-white text-[10px] px-1 rounded';
+          tag.className = 'absolute bottom-1 right-1 bg-emerald-600 text-white text-[10px] px-1 rounded';
           tag.textContent = '✓';
           thumb.classList.add('relative');
           thumb.appendChild(tag);
@@ -343,9 +339,9 @@ class View {
     };
 
     const bgMap = {
-      success: 'bg-green-600 text-white',
+      success: 'bg-emerald-600 text-white',
       error: 'bg-red-600 text-white',
-      info: 'bg-blue-600 text-white',
+      info: 'bg-emerald-600 text-white',
     };
 
     const iconHtml = iconMap[type] || iconMap.info;

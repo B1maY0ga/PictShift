@@ -4,35 +4,147 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PictShift - Image Converter & EXIF Cleaner</title>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
     .drop-zone { transition: all 0.2s ease; }
-    .drop-zone.drag-over { border-color: #3b82f6; background-color: #eff6ff; }
-    .dark .drop-zone.drag-over { background-color: #1e3a8a; }
+    .drop-zone.drag-over { border-color: #059669; background-color: #ecfdf5; }
+    .dark .drop-zone.drag-over { background-color: #0a0a0a; }
     .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .card:hover { transform: translateY(-2px); }
     .btn-primary { transition: all 0.2s ease; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
     .file-input { opacity: 0; position: absolute; z-index: -1; }
     .toast { transition: all 0.3s ease; }
+
+    /* ---------- Tema Khusus PictShift ---------- */
+    /* Light Mode: Putih & Hijau Emerald */
+    html:not(.dark) {
+      color-scheme: light;
+    }
+
+    /* Dark Mode: Hitam & Abu-abu Tua */
+    html.dark {
+      color-scheme: dark;
+    }
+
+    /* Background body berdasarkan tema */
+    html:not(.dark) body { background-color: #ffffff !important; }
+    html.dark body { background-color: #000000 !important; }
+
+    /* Navbar & Footer - Emerald di light, abu-abu tua di dark */
+    html:not(.dark) .ps-nav-footer {
+      background-color: #059669 !important;
+      border-color: #047857 !important;
+    }
+    html.dark .ps-nav-footer {
+      background-color: #0a0a0a !important;
+      border-color: #1f2937 !important;
+    }
+    html:not(.dark) .ps-nav-footer-text { color: #ffffff !important; }
+    html.dark .ps-nav-footer-text { color: #f1f5f9 !important; }
+    html:not(.dark) .ps-nav-footer-text-secondary { color: #d1fae5 !important; }
+    html.dark .ps-nav-footer-text-secondary { color: #94a3b8 !important; }
+
+    /* Drop Zone & Controls - Emerald muda di light, abu-abu tua di dark */
+    html:not(.dark) .ps-panel {
+      background-color: #ecfdf5 !important;
+      border-color: #059669 !important;
+    }
+    html.dark .ps-panel {
+      background-color: #0a0a0a !important;
+      border-color: #34d399 !important;
+    }
+    html:not(.dark) .ps-panel-text { color: #0f172a !important; }
+    html.dark .ps-panel-text { color: #f1f5f9 !important; }
+    html:not(.dark) .ps-panel-text-secondary { color: #475569 !important; }
+    html.dark .ps-panel-text-secondary { color: #94a3b8 !important; }
+
+    /* Card/Thumbnail item - Putih di light, abu-abu tua di dark */
+    html:not(.dark) .ps-card {
+      background-color: #ffffff !important;
+      border-color: #059669 !important;
+    }
+    html.dark .ps-card {
+      background-color: #0a0a0a !important;
+      border-color: #34d399 !important;
+    }
+    html:not(.dark) .ps-card-text { color: #0f172a !important; }
+    html.dark .ps-card-text { color: #f1f5f9 !important; }
+    html:not(.dark) .ps-card-text-secondary { color: #475569 !important; }
+    html.dark .ps-card-text-secondary { color: #94a3b8 !important; }
+
+    /* Empty state circle */
+    html:not(.dark) .ps-empty-circle {
+      background-color: #ecfdf5 !important;
+    }
+    html.dark .ps-empty-circle {
+      background-color: #111827 !important;
+    }
+
+    /* Theme toggle button */
+    html:not(.dark) .ps-theme-toggle {
+      background-color: #ffffff !important;
+      color: #059669 !important;
+      border: 1px solid #059669 !important;
+    }
+    html.dark .ps-theme-toggle {
+      background-color: #111827 !important;
+      color: #34d399 !important;
+      border: 1px solid #34d399 !important;
+    }
+
+    /* Format target dropdown - selalu terang di light mode */
+    html:not(.dark) .ps-format-select {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
+    html.dark .ps-format-select {
+      background-color: #0a0a0a !important;
+      color: #f1f5f9 !important;
+    }
+    html:not(.dark) .ps-format-select option {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
+    html.dark .ps-format-select option {
+      background-color: #0a0a0a !important;
+      color: #f1f5f9 !important;
+    }
+
+    /* Conversion status - hitam di light mode, putih di dark mode */
+    html:not(.dark) .ps-conversion-status { color: #0f172a !important; }
+    html.dark .ps-conversion-status { color: #ffffff !important; }
+
+    /* Aksen hijau konsisten */
+    .ps-accent { background-color: #059669; color: white; }
+    .ps-accent:hover { background-color: #047857; }
+    .ps-accent-text { color: #059669; }
+    .dark .ps-accent-text { color: #34d399; }
+    .ps-accent-bg { background-color: #ecfdf5; }
+    .dark .ps-accent-bg { background-color: #064e3b; }
   </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+<body class="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen transition-colors duration-300">
 
   <!-- Navbar -->
-  <nav class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 shadow-sm">
+  <nav class="ps-nav-footer border-b sticky top-0 z-50 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">P</div>
-          <span class="font-bold text-xl text-gray-900 dark:text-white tracking-tight">PictShift</span>
+          <div class="w-8 h-8 bg-emerald-600 dark:bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">P</div>
+          <span class="font-bold text-xl ps-nav-footer-text tracking-tight">PictShift</span>
         </div>
         <div class="flex items-center gap-4">
-          <button id="themeToggle" class="p-2 rounded-md text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" aria-label="Toggle dark mode">
-            <svg id="themeIconSun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-            <svg id="themeIconMoon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          <button id="themeToggle" class="ps-theme-toggle p-2 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900 transition-colors" aria-label="Toggle dark mode">
+            <svg id="themeIconSun" class="w-5 h-5 hidden text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="themeIconMoon" class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
           </button>
         </div>
       </div>
@@ -41,8 +153,8 @@
 
   <!-- Hero / Intro -->
   <header class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-    <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">Konversi Gambar & Bersihkan EXIF</h1>
-    <p class="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">
+    <h1 class="text-3xl md:text-4xl font-bold ps-panel-text mb-2">Konversi Gambar & Bersihkan EXIF</h1>
+    <p class="ps-panel-text-secondary text-lg max-w-2xl mx-auto">
       Semua pemrosesan dilakukan di perangkat Anda (client-side). File tidak pernah dikirim ke server. Privasi prima.
     </p>
   </header>
@@ -60,22 +172,22 @@
 
     <!-- Drop Zone & File Picker (TinyPNG + Convertio inspired) -->
     <section class="mb-8">
-      <div class="drop-zone border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-10 text-center bg-white dark:bg-gray-800 hover:border-blue-400 dark:hover:border-blue-500 cursor-pointer relative" id="dropZone">
+      <div class="drop-zone ps-panel border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer relative" id="dropZone">
         <input type="file" id="fileInput" class="file-input" accept="image/*" multiple />
         <div class="mb-4">
           <svg class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
         </div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Seret & Lepas Gambar di Sini</h3>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">atau</p>
-        <button id="browseBtn" class="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md">
+        <h3 class="text-xl font-semibold ps-panel-text mb-2">Seret & Lepas Gambar di Sini</h3>
+        <p class="ps-panel-text-secondary mb-6">atau</p>
+        <button id="browseBtn" class="btn-primary bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-xl font-semibold shadow-md">
           Pilih File Gambar
         </button>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-4">Dukungan: WebP, JPEG, PNG. Ukuran maksimal 10MB per file.</p>
+        <p class="ps-panel-text-secondary mt-4">Dukungan: WebP, JPEG, PNG. Ukuran maksimal 10MB per file.</p>
       </div>
     </section>
 
     <!-- Conversion Controls -->
-    <section id="controls" class="hidden mb-8 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+    <section id="controls" class="hidden mb-8 ps-panel p-6 rounded-2xl shadow-sm">
       
       <!-- Compact Thumbnail List -->
       <div id="thumbnailList" class="mb-6 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -85,47 +197,47 @@
       <!-- Conversion Status & Controls -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div class="flex items-center gap-4">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Format target:</label>
-          <select id="formatSelect" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+          <label class="text-sm font-medium ps-panel-text">Format target:</label>
+          <select id="formatSelect" class="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 ps-format-select focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
             <option value="image/webp">WebP (direkomendasikan)</option>
             <option value="image/jpeg">JPEG</option>
             <option value="image/png">PNG</option>
           </select>
         </div>
         <div class="flex items-center gap-3">
-          <input type="checkbox" id="exifCheckbox" checked class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-500 focus:ring-blue-500 bg-gray-50 dark:bg-gray-700" />
-          <label for="exifCheckbox" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer flex items-center gap-2">
+          <input type="checkbox" id="exifCheckbox" checked class="w-5 h-5 rounded border-gray-300 dark:border-gray-600 text-emerald-600 dark:text-emerald-400 focus:ring-emerald-500 bg-gray-50 dark:bg-gray-700" />
+          <label for="exifCheckbox" class="text-sm ps-panel-text cursor-pointer flex items-center gap-2">
             <span>Hapus metadata untuk privasi</span>
-            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-0.5 rounded-full">EXIF Cleaner</span>
+            <span class="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 px-2 py-0.5 rounded-full">EXIF Cleaner</span>
           </label>
         </div>
       </div>
       
       <div class="mt-6">
-        <button id="convertBtn" class="btn-primary w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2">
+        <button id="convertBtn" class="btn-primary w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-10 py-3 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2">
           <span>Convert Now</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         </button>
       </div>
       
       <div class="mt-4 flex justify-end">
-        <button id="clearAllBtn" class="text-sm text-red-600 dark:text-red-500 hover:underline font-medium">Hapus Semua</button>
+        <button id="clearAllBtn" class="text-sm text-red-600 dark:text-red-400 hover:underline font-medium">Hapus Semua</button>
       </div>
     </section>
 
     <!-- Empty State -->
     <div id="emptyState" class="text-center py-20 hidden">
-      <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+      <div class="w-16 h-16 ps-empty-circle rounded-full flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
       </div>
-      <p class="text-gray-600 dark:text-gray-400">Belum ada gambar. Seret atau pilih file untuk memulai.</p>
+      <p class="ps-panel-text-secondary">Belum ada gambar. Seret atau pilih file untuk memulai.</p>
     </div>
 
   </main>
 
-  <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
+  <footer class="ps-nav-footer border-t mt-auto">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
-      <p class="text-sm text-gray-500 dark:text-gray-400">
+      <p class="text-sm ps-nav-footer-text-secondary">
         PictShift &bull; Client-side only &bull; Tidak ada upload ke server &bull; Privasi terjamin
       </p>
     </div>
