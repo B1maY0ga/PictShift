@@ -77,11 +77,22 @@ class View {
     dz.addEventListener('dragover', (e) => {
       e.preventDefault();
       dz.classList.add('drag-over');
+      const overlay = dz.querySelector('#drag-over-overlay');
+      if (overlay) overlay.style.opacity = '1';
     });
-    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('dragleave', (e) => {
+      // Only remove drag-over if leaving the drop zone entirely
+      if (e.relatedTarget === null || !dz.contains(e.relatedTarget)) {
+        dz.classList.remove('drag-over');
+        const overlay = dz.querySelector('#drag-over-overlay');
+        if (overlay) overlay.style.opacity = '0';
+      }
+    });
     dz.addEventListener('drop', (e) => {
       e.preventDefault();
       dz.classList.remove('drag-over');
+      const overlay = dz.querySelector('#drag-over-overlay');
+      if (overlay) overlay.style.opacity = '0';
       const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
       handler(files);
     });

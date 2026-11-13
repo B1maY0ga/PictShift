@@ -202,9 +202,6 @@ class Controller {
   }
 
   _handleClearAll() {
-    const confirmed = confirm('Are you sure you want to delete all images and conversion results?');
-    if (!confirmed) return;
-
     // Revoke semua URL
     this.model.files.forEach((f) => {
       if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);

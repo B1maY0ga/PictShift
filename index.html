@@ -13,9 +13,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     body { font-family: 'Inter', sans-serif; }
-    .drop-zone { transition: all 0.2s ease; }
-    .drop-zone.drag-over { border-color: #059669; background-color: #ecfdf5; }
-    .dark .drop-zone.drag-over { background-color: #0a0a0a; }
+    .drop-zone {
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
     .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
     .card:hover { transform: translateY(-2px); }
     .btn-primary { transition: all 0.2s ease; }
@@ -129,12 +131,77 @@
     .dark .ps-accent-text { color: #34d399; }
     .ps-accent-bg { background-color: #ecfdf5; }
     .dark .ps-accent-bg { background-color: #064e3b; }
+
+    /* Hover for drop zone upload box only */
+    html:not(.dark) .drop-zone:hover {
+      background-color: #d1fae5 !important;
+      border-color: #059669 !important;
+    }
+    html.dark .drop-zone:hover {
+      background-color: #0f172a !important;
+      border-color: #34d399 !important;
+    }
+
+    /* Drag-over styles - placed LAST to override .ps-panel */
+    html:not(.dark) .drop-zone.drag-over {
+      background-color: #bbf7d0 !important;
+      border-color: #059669 !important;
+      transform: scale(1.02);
+    }
+    html.dark .drop-zone.drag-over {
+      background-color: #064e3b !important;
+      border-color: #34d399 !important;
+      transform: scale(1.02);
+    }
+    html:not(.dark) .drop-zone.drag-over::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px dashed #059669;
+      border-radius: 1rem;
+      pointer-events: none;
+      animation: drag-pulse 1.5s infinite;
+    }
+    html.dark .drop-zone.drag-over::before {
+      border-color: #34d399;
+    }
+    @keyframes drag-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Navbar - lebar penuh dengan sudut bawah melengkung */
+    html:not(.dark) .navbar-design {
+      background-color: #059669 !important;
+      border-color: #047857 !important;
+      border-bottom-left-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+    }
+    html.dark .navbar-design {
+      background-color: #000000 !important;
+      border-color: #059669 !important;
+      border-bottom-left-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+    }
+
+    /* Footer - sedikit lebih lebar */
+    html:not(.dark) .footer-design {
+      background-color: #059669 !important;
+      border-color: #047857 !important;
+    }
+    html.dark .footer-design {
+      background-color: #000000 !important;
+      border-color: #059669 !important;
+    }
   </style>
 </head>
 <body class="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen transition-colors duration-300">
 
   <!-- Navbar -->
-  <nav class="ps-nav-footer border-b sticky top-0 z-50 shadow-sm">
+  <nav class="ps-nav-footer border-b sticky top-0 z-50 shadow-sm navbar-design">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center gap-2">
@@ -183,6 +250,15 @@
           Select Image File
         </button>
         <p class="ps-panel-text-secondary mt-4">Supports: WebP, JPEG, PNG. Max 10MB per file.</p>
+
+        <!-- Drag-over overlay -->
+        <div id="drag-over-overlay" class="absolute inset-0 bg-white/90 dark:bg-black/90 flex flex-col items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 z-10 rounded-2xl">
+          <div class="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-3 shadow-lg">
+            <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+          </div>
+          <h3 class="text-xl font-bold ps-panel-text mb-1">Drop files here</h3>
+          <p class="ps-panel-text-secondary">Release to upload</p>
+        </div>
       </div>
     </section>
 
@@ -233,7 +309,7 @@
 
   </main>
 
-  <footer class="ps-nav-footer border-t mt-auto">
+  <footer class="ps-nav-footer border-t mt-auto footer-design">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
       <p class="text-sm ps-nav-footer-text-secondary">
         PictShift &bull; Client-side only &bull; No server uploads &bull; Privacy guaranteed
