@@ -1,7 +1,7 @@
 /**
  * PictShift - View Layer
- * Tanggung jawab: Rendering UI, manipulasi DOM, dan menangkap input user.
- * Tidak boleh berisi logika konversi atau state bisnis.
+ * Responsibility: Rendering UI, DOM manipulation, and capturing user input.
+ * Must not contain conversion logic or business state.
  */
 
 const SELECTORS = {
@@ -33,7 +33,7 @@ class View {
     Object.entries(SELECTORS).forEach(([key, selector]) => {
       const el = document.querySelector(selector);
       if (!el) {
-        console.warn(`View: elemen "${selector}" tidak ditemukan.`);
+        console.warn(`View: element "${selector}" not found.`);
       }
       this.elements[key] = el;
     });
@@ -61,7 +61,7 @@ class View {
         applyTheme(!isDark);
       });
 
-      // Inisialisasi tema dari localStorage / sistem
+      // Initialize theme from localStorage / system
       const saved = localStorage.getItem('pictshift-theme');
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       const shouldBeDark = saved ? saved === 'dark' : prefersDark;
@@ -158,7 +158,7 @@ class View {
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        Memproses...
+        Processing...
       `;
     } else {
       btn.disabled = false;
@@ -217,9 +217,9 @@ class View {
 
       const statusLabel = (() => {
         const config = {
-          idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Siap' },
-          converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Memproses...' },
-          done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Selesai' },
+          idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Ready' },
+          converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Processing...' },
+          done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Done' },
           error: { text: 'text-red-500 dark:text-red-400', label: 'Error' },
         }[file.status] || config.idle;
         return `<span class="text-xs font-medium ${config.text}">${config.label}</span>`;
@@ -245,7 +245,7 @@ class View {
           </div>
           <span class="text-xs ps-card-text-secondary">${this._formatFileSize(file.size)}</span>
         </div>
-        <button class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors p-1 shrink-0" aria-label="Hapus" data-action="remove">
+        <button class="text-gray-400 hover:text-red-600 dark:hover:text-red-500 transition-colors p-1 shrink-0" aria-label="Delete" data-action="remove">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
       `;
@@ -270,9 +270,9 @@ class View {
     const statusLabel = item.querySelector('span.text-xs.font-medium');
     if (statusLabel) {
       const config = {
-        idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Siap' },
-        converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Memproses...' },
-        done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Selesai' },
+        idle: { text: 'text-gray-500 dark:text-gray-400', label: 'Ready' },
+        converting: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Processing...' },
+        done: { text: 'text-emerald-500 dark:text-emerald-400', label: 'Done' },
         error: { text: 'text-red-500 dark:text-red-400', label: 'Error' },
       }[file.status] || config.idle;
       statusLabel.className = `text-xs font-medium ${config.text}`;
@@ -325,7 +325,7 @@ class View {
       clearTimeout(this.toastTimeout);
     }
 
-    // Ikon berdasarkan tipe notifikasi
+    // Icon based on notification type
     const iconMap = {
       success: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>`,
       error: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`,
@@ -344,7 +344,7 @@ class View {
     // Reset kelas toast secara penuh agar transition bekerja dengan benar
     toast.className = 'toast fixed bottom-5 right-5 px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3 transition-all duration-300 translate-y-0 opacity-100 ' + bgClass;
 
-    // Isi konten: ikon + pesan
+    // Fill content: icon + message
     toast.innerHTML = `
       <div class="flex-shrink-0">
         ${iconHtml}
@@ -352,10 +352,10 @@ class View {
       <span class="font-medium">${this._escapeHtml(message)}</span>
     `;
 
-    // Paksa reflow agar transition class diterapkan sebelum translate-y-0
+    // Force reflow so transition class is applied before translate-y-0
     void toast.offsetWidth;
 
-    // Hilang otomatis setelah 3 detik
+    // Auto-hide after 3 seconds
     this.toastTimeout = setTimeout(() => {
       toast.classList.remove('translate-y-0', 'opacity-100');
       toast.classList.add('translate-y-20', 'opacity-0');

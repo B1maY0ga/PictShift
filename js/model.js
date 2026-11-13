@@ -1,14 +1,14 @@
 /**
  * PictShift - Model Layer
- * Tanggung jawab: Data, state aplikasi, dan logika konversi gambar (Canvas API).
- * Tidak sentuh DOM sama sekali.
+ * Responsibility: Data, application state, and image conversion logic (Canvas API).
+ * Does not touch DOM at all.
  */
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_CANVAS_DIMENSION = 4096; // Batasi agar aman di semua browser
 
 /**
- * Mewakili satu file gambar yang sedang diproses.
+ * Represents one image file being processed.
  */
 class ImageFile {
   constructor(file) {
@@ -44,7 +44,7 @@ class ImageFile {
 }
 
 /**
- * State global aplikasi.
+ * Global application state.
  */
 class AppState {
   constructor() {
@@ -94,9 +94,9 @@ class AppState {
 }
 
 /**
- * Logika inti konversi & pembersihan EXIF menggunakan HTML5 Canvas.
- * Teknik: drawImage + toBlob -> browser secara native membuang metadata EXIF
- * saat re-encode melalui canvas. Tidak perlu library eksternal.
+ * Core conversion & EXIF cleaning logic using HTML5 Canvas.
+ * Technique: drawImage + toBlob -> browser natively removes EXIF metadata
+ * during re-encode through canvas. No external library needed.
  */
 class ImageProcessor {
   /**
@@ -114,10 +114,10 @@ class ImageProcessor {
           imageFile.previewUrl = e.target.result;
           resolve();
         };
-        img.onerror = () => reject(new Error('Gagal memuat gambar untuk preview.'));
+        img.onerror = () => reject(new Error('Failed to load image for preview.'));
         img.src = e.target.result;
       };
-      reader.onerror = () => reject(new Error('Gagal membaca file.'));
+      reader.onerror = () => reject(new Error('Failed to read file.'));
       reader.readAsDataURL(imageFile.file);
     });
   }
@@ -147,10 +147,10 @@ class ImageProcessor {
       canvas.height = height;
 
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      // drawImage secara native tidak menyalin EXIF metadata ke canvas
+      // drawImage natively does not copy EXIF metadata to canvas
       ctx.drawImage(img, 0, 0, width, height);
 
-      // toBlob menghasilkan gambar baru tanpa EXIF
+      // toBlob produces a new image without EXIF
       const blob = await this._canvasToBlob(canvas, targetFormat);
 
       imageFile.blob = blob;
@@ -160,7 +160,7 @@ class ImageProcessor {
       imageFile.status = 'done';
     } catch (err) {
       imageFile.status = 'error';
-      imageFile.error = err.message || 'Gagal mengonversi gambar.';
+      imageFile.error = err.message || 'Failed to convert image.';
       throw err;
     }
   }
@@ -191,7 +191,7 @@ class ImageProcessor {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = () => reject(new Error('Gagal membaca file.'));
+      reader.onerror = () => reject(new Error('Failed to read file.'));
       reader.readAsDataURL(file);
     });
   }
@@ -200,7 +200,7 @@ class ImageProcessor {
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Gagal memuat gambar.'));
+      img.onerror = () => reject(new Error('Failed to load image.'));
       img.src = src;
     });
   }
@@ -227,7 +227,7 @@ class ImageProcessor {
                       targetFormat === 'image/webp' ? 0.85 : 0.90;
       canvas.toBlob(
         (blob) => {
-          if (!blob) reject(new Error('Gagal menghasilkan blob.'));
+          if (!blob) reject(new Error('Failed to generate blob.'));
           else resolve(blob);
         },
         targetFormat,
