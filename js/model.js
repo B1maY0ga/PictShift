@@ -50,6 +50,7 @@ class AppState {
   constructor() {
     this.files = [];
     this.targetFormat = 'image/webp';
+    this.targetQuality = undefined; // default per format akan digunakan (WebP: 0.85, JPEG: 0.90)
     this.isConverting = false;
   }
 
@@ -76,6 +77,10 @@ class AppState {
 
   setTargetFormat(format) {
     this.targetFormat = format;
+  }
+
+  setTargetQuality(quality) {
+    this.targetQuality = quality && quality >= 0.1 && quality <= 1.0 ? quality : 0.8;
   }
 
   get filesByStatus() {
@@ -128,37 +133,74 @@ class ImageProcessor {
    * metadata saat drawImage + toBlob.
    * @param {ImageFile} imageFile
    * @param {string} targetFormat MIME type (image/webp, image/jpeg, image/png)
+   * @param {number} quality Kualitas konversi 0.10 - 1.00 (hanya untuk JPEG/WebP)
    * @returns {Promise<void>}
    */
-  static async convert(imageFile, targetFormat) {
+  static async convert(imageFile, targetFormat, quality) {
     imageFile.status = 'converting';
 
     try {
+      console.log('ImageProcessor.convert started:', imageFile.name, 'format:', targetFormat, 'quality:', quality);
+
+      // Validasi dan normalisasi quality parameter berdasarkan format
+      let normalizedQuality;
+      if (targetFormat === 'image/png') {
+        normalizedQuality = undefined; // PNG tidak menggunakan quality
+      } else if (targetFormat === 'image/webp') {
+        normalizedQuality = quality && quality >= 0.1 && quality <= 1.0 ? quality : 0.85;
+      } else if (targetFormat === 'image/jpeg') {
+        normalizedQuality = quality && quality >= 0.1 && quality <= 1.0 ? quality : 0.90;
+      } else {
+        normalizedQuality = quality && quality >= 0.1 && quality <= 1.0 ? quality : 0.8;
+      }
+
       // Baca file sebagai data URL untuk diproses oleh Image
       const dataUrl = await this._fileToDataURL(imageFile.file);
+      console.log('File read as data URL, length:', dataUrl.length);
 
       const img = await this._loadImage(dataUrl);
+      console.log('Image loaded:', img.naturalWidth, 'x', img.naturalHeight);
+
+      // Validasi dimensi gambar
+      if (!img.naturalWidth || !img.naturalHeight) {
+        throw new Error('Gambar tidak valid atau tidak dapat dimuat.');
+      }
 
       // Skala jika terlalu besar agar aman di canvas
       const { width, height } = this._fitDimensions(img.naturalWidth, img.naturalHeight);
+      console.log('Canvas dimensions:', width, 'x', height);
+
+      if (width <= 0 || height <= 0) {
+        throw new Error('Dimensi gambar tidak valid.');
+      }
 
       const canvas = document.createElement('canvas');
+      if (!canvas) throw new Error('Gagal membuat canvas.');
       canvas.width = width;
       canvas.height = height;
 
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) throw new Error('Gagal membuat canvas context.');
       // drawImage natively does not copy EXIF metadata to canvas
       ctx.drawImage(img, 0, 0, width, height);
+      console.log('Image drawn to canvas');
 
       // toBlob produces a new image without EXIF
-      const blob = await this._canvasToBlob(canvas, targetFormat);
+      const blob = await this._canvasToBlob(canvas, targetFormat, normalizedQuality);
+
+      if (!blob) {
+        throw new Error('Gagal menghasilkan gambar hasil konversi.');
+      }
+      console.log('Blob created, size:', blob.size, 'type:', blob.type);
 
       imageFile.blob = blob;
       imageFile.convertedUrl = URL.createObjectURL(blob);
       imageFile.convertedType = targetFormat;
       imageFile.convertedSize = blob.size;
       imageFile.status = 'done';
+      console.log('Conversion complete:', imageFile.name);
     } catch (err) {
+      console.error('Conversion error:', imageFile.name, err.message);
       imageFile.status = 'error';
       imageFile.error = err.message || 'Failed to convert image.';
       throw err;
@@ -169,6 +211,10 @@ class ImageProcessor {
    * Unduh hasil konversi dan bersihkan blob URL dari memori.
    */
   static download(imageFile) {
+    if (!imageFile.convertedUrl && imageFile.blob) {
+      // Regenerate URL if it was already revoked but blob still exists
+      imageFile.convertedUrl = URL.createObjectURL(imageFile.blob);
+    }
     if (!imageFile.convertedUrl) return;
 
     const link = document.createElement('a');
@@ -216,15 +262,10 @@ class ImageProcessor {
     };
   }
 
-  static _canvasToBlob(canvas, targetFormat) {
+  static _canvasToBlob(canvas, targetFormat, quality = 0.8) {
     return new Promise((resolve, reject) => {
-      // Kualitas encoding disesuaikan agar output file tetap kecil tanpa mengorbankan kualitas visual.
-      // WebP umumnya lebih efisien dari JPEG/PNG, namun untuk gambar kecil atau dengan sedikit warna,
-      // ukuran WebP kadang tidak berubah jauh atau sedikit lebih besar dari aslinya.
-      // Menggunakan kualitas 0.85 untuk WebP dan 0.90 untuk JPEG menghasilkan file yang lebih kecil
-      // sambil tetap mempertahankan kualitas yang baik untuk penggunaan umum.
-      const quality = targetFormat === 'image/png' ? undefined :
-                      targetFormat === 'image/webp' ? 0.85 : 0.90;
+      // Kualitas hanya diterapkan untuk JPEG dan WebP. PNG tidak mendukung quality parameter.
+      const canvasQuality = targetFormat === 'image/png' ? undefined : quality;
       canvas.toBlob(
         (blob) => {
           if (!blob) reject(new Error('Failed to generate blob.'));

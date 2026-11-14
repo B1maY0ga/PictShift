@@ -60,8 +60,7 @@ improvements. Do not add other features in this iteration.
   quality settings, such as JPEG and WebP.
 - For PNG, explain or disable the quality control if the chosen
   implementation does not provide an equivalent lossy quality setting.
-- Use a sensible and consistent default value; recommended initial
-  value: 80% for supported formats.
+- Use a sensible and consistent default value; 
 - Changing the slider must not modify the source file. The setting
   applies only to the exported output.
 6.2 Automatic ZIP for More Than Two Files
