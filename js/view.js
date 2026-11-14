@@ -11,6 +11,8 @@ const SELECTORS = {
   controls: '#controls',
   thumbnailList: '#thumbnailList',
   formatSelect: '#formatSelect',
+  qualitySlider: '#qualitySlider',
+  qualityValue: '#qualityValue',
   convertBtn: '#convertBtn',
   emptyState: '#emptyState',
   clearAllBtn: '#clearAllBtn',
@@ -96,10 +98,6 @@ class View {
       const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
       handler(files);
     });
-    dz.addEventListener('click', () => {
-      const input = this.elements.fileInput;
-      if (input) input.click();
-    });
   }
 
   onFileInputChange(handler) {
@@ -127,9 +125,24 @@ class View {
     if (sel) sel.addEventListener('change', (e) => handler(e.target.value));
   }
 
+  onQualityChange(handler) {
+    const slider = this.elements.qualitySlider;
+    if (slider) slider.addEventListener('input', (e) => handler(e.target.value));
+  }
+
   onConvertClick(handler) {
     const btn = this.elements.convertBtn;
     if (btn) btn.addEventListener('click', handler);
+  }
+
+  setQualityValue(text) {
+    const el = this.elements.qualityValue;
+    if (el) el.textContent = text;
+  }
+
+  setQualitySliderEnabled(enabled) {
+    const slider = this.elements.qualitySlider;
+    if (slider) slider.disabled = !enabled;
   }
 
   onClearAllClick(handler) {

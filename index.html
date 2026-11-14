@@ -22,7 +22,16 @@
     .card:hover { transform: translateY(-2px); }
     .btn-primary { transition: all 0.2s ease; }
     .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .file-input { opacity: 0; position: absolute; z-index: -1; }
+    .file-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 1;
+    }
     .toast { transition: all 0.3s ease; }
 
     /* ---------- Tema Khusus PictShift ---------- */
@@ -279,6 +288,11 @@
             <option value="image/jpeg">JPEG</option>
             <option value="image/png">PNG</option>
           </select>
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="text-sm font-medium ps-panel-text">Quality:</label>
+          <input type="range" id="qualitySlider" min="10" max="100" value="85" class="w-24 accent-emerald-600 dark:accent-emerald-400">
+          <span id="qualityValue" class="text-sm font-medium ps-panel-text min-w-[3ch] text-right">80%</span>
         </div>
         <div class="flex items-center gap-3">
           <span class="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900 px-2 py-1 rounded-full font-medium">

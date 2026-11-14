@@ -13,6 +13,9 @@ class Controller {
     this.allConverted = false;
 
     this._bindView();
+
+    // Initialize slider state based on default format
+    this._updateSliderState(this.model.targetFormat);
   }
 
   _bindView() {
@@ -23,6 +26,7 @@ class Controller {
 
     // Controls
     this.view.onFormatChange((format) => this._handleFormatChange(format));
+    this.view.onQualityChange((quality) => this._handleQualityChange(quality));
     this.view.onConvertClick(() => this._handleMainButtonClick());
     this.view.onClearAllClick(() => this._handleClearAll());
   }
@@ -58,6 +62,10 @@ class Controller {
       }
       if (file.size > MAX_FILE_SIZE) {
         invalidFiles.push({ name: file.name, reason: 'File size exceeds 10 MB.' });
+        continue;
+      }
+      if (file.size === 0) {
+        invalidFiles.push({ name: file.name, reason: 'File is empty.' });
         continue;
       }
       validFiles.push(file);
@@ -133,7 +141,42 @@ class Controller {
     this.model.setTargetFormat(format);
     this.allConverted = false;
     this.view.setMainButtonMode('convert');
+    this._updateSliderState(format);
     this._renderThumbnailList(); // Update conversion status (JPG → PNG etc.)
+  }
+
+  _handleQualityChange(quality) {
+    this.model.setTargetQuality(parseFloat(quality) / 100);
+    this.view.setQualityValue(`${quality}%`);
+    this.allConverted = false;
+    this.view.setMainButtonMode('convert');
+  }
+
+  _updateSliderState(format) {
+    const supportsQuality = format === 'image/webp' || format === 'image/jpeg';
+    this.view.setQualitySliderEnabled(supportsQuality);
+    
+    // Set default quality value based on format
+    let defaultValue;
+    if (format === 'image/webp') {
+      defaultValue = 85;
+    } else if (format === 'image/jpeg') {
+      defaultValue = 90;
+    } else {
+      defaultValue = 100; // PNG - slider disabled anyway
+    }
+    
+    // Update slider element value
+    const slider = this.view.elements.qualitySlider;
+    if (slider) {
+      slider.value = defaultValue;
+    }
+    
+    // Update display text
+    this.view.setQualityValue(`${defaultValue}%`);
+    
+    // Set model target quality
+    this.model.setTargetQuality(defaultValue / 100);
   }
 
   async _handleMainButtonClick() {
@@ -159,6 +202,12 @@ class Controller {
   }
 
   async _handleConvertAll() {
+    // Prevent duplicate conversion requests
+    if (this.model.isConverting) {
+      this.view.showToast('Sedang memproses konversi, tunggu sampai selesai.', 'error');
+      return;
+    }
+
     const filesToConvert = this.model.files.filter((f) => f.status === 'idle' || f.status === 'error');
     if (filesToConvert.length === 0) {
       this.view.showToast('No images to convert.', 'error');
@@ -173,10 +222,18 @@ class Controller {
 
     for (const file of filesToConvert) {
       try {
-        await ImageProcessor.convert(file, this.model.targetFormat);
+        // Revoke old convertedUrl to prevent memory leak
+        if (file.convertedUrl) {
+          URL.revokeObjectURL(file.convertedUrl);
+          file.convertedUrl = null;
+        }
+        console.log('Converting:', file.name, 'format:', this.model.targetFormat, 'quality:', this.model.targetQuality);
+        await ImageProcessor.convert(file, this.model.targetFormat, this.model.targetQuality);
+        console.log('Converted successfully:', file.name, 'size:', file.convertedSize);
         this.view.updateThumbnailItem(file.id, file);
         successCount++;
       } catch (err) {
+        console.error('Conversion failed:', file.name, err);
         this.view.updateThumbnailItem(file.id, file);
         errorCount++;
       }
@@ -232,7 +289,7 @@ class Controller {
 
     this.view.updateThumbnailItem(fileId, file);
     try {
-      await ImageProcessor.convert(file, this.model.targetFormat);
+      await ImageProcessor.convert(file, this.model.targetFormat, this.model.targetQuality);
       this.view.updateThumbnailItem(fileId, file);
       this.view.showToast(`${file.name} successfully converted.`, 'success');
     } catch (err) {
